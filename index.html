@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Timer (3 Hours)</title>
+  <style>
+    /* Basic reset and responsive container */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(45deg, #ff0099, #ff6600, #66ccff, #33cc33);
+      color: white;
+      animation: fadeIn 2s ease-in-out, backgroundColorAnimation 6s infinite alternate;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #fff, 0 0 20px #ff0099, 0 0 30px #ff6600;
+    }
+    #timer {
+      font-size: 3rem;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      display: inline-block;
+      animation: colorChange 3s infinite alternate, glowEffect 1s infinite alternate;
+      text-shadow: 0 0 10px #ff0099, 0 0 20px #ff6600, 0 0 30px #66ccff;
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+    #timer:hover {
+      transform: scale(1.05);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      margin: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      background-color: transparent;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #333;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px #ff0099, 0 0 20px #ff6600;
+    }
+    /* Initially show only the Start button */
+    #startBtn { display: inline-block; }
+    #pauseBtn, #stopBtn { display: none; }
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes backgroundColorAnimation {
+      0% { background: linear-gradient(45deg, #ff0099, #ff6600, #66ccff, #33cc33); }
+      50% { background: linear-gradient(45deg, #ff0033, #66cc33, #ffcc00, #3399ff); }
+      100% { background: linear-gradient(45deg, #ff0099, #ff6600, #66ccff, #33cc33); }
+    }
+    @keyframes glowEffect {
+      0% { box-shadow: 0 0 20px #ff0099, 0 0 40px #ff6600; }
+      50% { box-shadow: 0 0 60px #ff0099, 0 0 80px #66ccff; }
+      100% { box-shadow: 0 0 100px #ff0099, 0 0 120px #ff6600; }
+    }
+    @keyframes colorChange {
+      0% { color: #ff0099; }
+      50% { color: #ff6600; }
+      100% { color: #66ccff; }
+    }
+    /* Media Queries for responsiveness */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      #timer { font-size: 2.5rem; padding: 15px; }
+      button { font-size: 1rem; padding: 8px 16px; margin: 8px; }
+    }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.8rem; }
+      #timer { font-size: 2rem; padding: 10px; }
+      button { font-size: 0.9rem; padding: 6px 12px; margin: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Paper Timer (3 Hours)</h1>
+    <div id="timer">03:00:00</div>
+    <div>
+      <button id="startBtn" onclick="startTimer()">Start Now</button>
+      <button id="pauseBtn" onclick="pauseTimer()">Pause</button>
+      <button id="stopBtn" onclick="stopTimer()">Stop</button>
+    </div>
+  </div>
+
+  <audio id="backgroundMusic" src="https://www.myinstants.com/media/sounds/taco-bell-bong-sfx.mp3"></audio>
+  <audio id="twoHourSound" src="https://www.myinstants.com/media/sounds/taco-bell-bong-sfx.mp3"></audio>
+  <audio id="oneHourSound" src="https://www.myinstants.com/media/sounds/taco-bell-bong-sfx.mp3"></audio>
+  <audio id="endBell" src="https://www.myinstants.com/media/sounds/taco-bell-bong-sfx.mp3"></audio>
+
+  <script>
+    let time = 3 * 60 * 60; // 3 hours in seconds
+    let interval;
+    let music = document.getElementById('backgroundMusic');
+    let startBtn = document.getElementById('startBtn');
+    let stopBtn = document.getElementById('stopBtn');
+    let pauseBtn = document.getElementById('pauseBtn');
+    let isPaused = false;
+
+    function startTimer() {
+      music.currentTime = 0;
+      music.play().catch(error => console.log("Autoplay blocked: ", error));
+      startBtn.style.display = "none";
+      stopBtn.style.display = "inline-block";
+      pauseBtn.style.display = "inline-block";
+      speakText("The paper has started!");
+      interval = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+      window.location.reload(); // Refresh page to reset everything
+    }
+
+    function pauseTimer() {
+      if (!isPaused) {
+        clearInterval(interval);
+        pauseBtn.innerText = "Resume";
+        isPaused = true;
+      } else {
+        interval = setInterval(updateTimer, 1000);
+        pauseBtn.innerText = "Pause";
+        isPaused = false;
+      }
+    }
+
+    function updateTimer() {
+      time--;
+      let hours = Math.floor(time / 3600);
+      let minutes = Math.floor((time % 3600) / 60);
+      let seconds = time % 60;
+      document.getElementById('timer').innerText =
+        (hours < 10 ? "0" : "") + hours + ":" +
+        (minutes < 10 ? "0" : "") + minutes + ":" +
+        (seconds < 10 ? "0" : "") + seconds;
+
+      // 2 hours left alert
+      if (time === 2 * 60 * 60) {
+        document.getElementById('twoHourSound').play();
+        speakText("The time is now two hours remaining!");
+        music.volume = 0.3;
+      }
+      // 1 hour left alert
+      if (time === 1 * 60 * 60) {
+        document.getElementById('oneHourSound').play();
+        speakText("The time is now one hour remaining!");
+      }
+      // Timer ends
+      if (time <= 0) {
+        clearInterval(interval);
+        document.getElementById('endBell').play();
+        speakText("The time has ended!");
+        music.volume = 1;
+        music.pause();
+        music.currentTime = 0;
+        setTimeout(() => window.location.reload(), 3000);
+      }
+    }
+
+    function speakText(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
